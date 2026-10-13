@@ -1,3 +1,35 @@
+from pathlib import Path
+import joblib
+import numpy as np
+from PIL import Image, UnidentifiedImageError
+from skimage.feature import hog
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+DATA_DIR = Path("data")
+MODEL_PATH = Path("model.joblib")
+IMAGE_SIZE = (128, 128)
+VALID_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
+
+def image_to_features(image: Image.Image) -> np.ndarray:
+    """Convert an image into a HOG feature vector."""
+    image = image.convert("L").resize(IMAGE_SIZE)
+    pixels = np.asarray(image)
+    features = hog(
+        pixels,
+        orientations=9,
+        pixels_per_cell=(8, 8),
+        cells_per_block=(2, 2),
+        block_norm="L2-Hys",
+    )
+    return features.astype(np.float32)
+
+def load_dataset():
+    X, y = [], []
+    classes = ["Normal", "Defective"]
 
     for class_name in classes:
         folder = DATA_DIR / class_name
